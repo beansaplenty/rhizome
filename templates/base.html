@@ -8,91 +8,70 @@
     <style>
         body {
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #fff;
-            color: #202122;
             line-height: 1.6;
             margin: 0;
             padding: 0;
+            color: #202122;
+            position: relative;
+            overflow: hidden;
         }
 
-        a {
-            text-decoration: none;
-            color: #0645ad;
-            transition: color 0.2s, background-color 0.2s;
+        a { text-decoration: none; color: #0645ad; transition: 0.2s; }
+        a:hover { color: #0b0080; text-decoration: underline; }
+
+        header, .container, footer { position: relative; z-index: 1; }
+        header { border-bottom: 1px solid #a2a9b1; padding: 1rem 0; margin-bottom: 2rem; }
+        .container { max-width: 900px; margin: auto; padding: 0 1rem; }
+        footer { border-top: 1px solid #a2a9b1; padding: 1rem 0; margin-top: 3rem; font-size: 0.9rem; text-align: center; color: #555; }
+
+        h2 { margin-top: 0; }
+        ul { padding-left: 1rem; }
+
+        .concept-box { flex:1 1 200px; padding:0.5rem 1rem; border:1px solid #ccc; border-radius:3px; text-align:center; background-color:#f8f9fa; color:#0645ad; font-size:0.95rem; transition: all 0.2s; }
+        .concept-box:hover { background-color:#e6f0ff; }
+
+        form input[type=text] { padding:0.4rem; width:250px; margin-right:0.5rem; border:1px solid #ccc; border-radius:3px; }
+        form button { padding:0.4rem 0.8rem; background-color:#0645ad; color:white; border:none; border-radius:3px; cursor:pointer; }
+        form button:hover { background-color:#0b0080; }
+
+        /* Trippy multi-layer swirl effect */
+        body::before, body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
         }
 
-        a:hover {
-            color: #0b0080;
-            text-decoration: underline;
-            cursor: pointer;
+        body::before {
+            background:
+                radial-gradient(circle at 15% 20%, #ff00ff33, transparent 50%),
+                radial-gradient(circle at 75% 70%, #00ffff33, transparent 50%),
+                radial-gradient(circle at 50% 50%, #ffff0033, transparent 50%);
+            mix-blend-mode: overlay;
+            animation: swirl1 40s infinite linear;
         }
 
-        header {
-            border-bottom: 1px solid #a2a9b1;
-            padding: 1rem 0;
-            margin-bottom: 2rem;
+        body::after {
+            background:
+                radial-gradient(circle at 25% 80%, #ff660033, transparent 50%),
+                radial-gradient(circle at 70% 25%, #66ff0033, transparent 50%),
+                radial-gradient(circle at 50% 50%, #0066ff33, transparent 50%);
+            mix-blend-mode: overlay;
+            animation: swirl2 60s infinite linear reverse;
         }
 
-        .container {
-            max-width: 900px;
-            margin: auto;
-            padding: 0 1rem;
+        @keyframes swirl1 {
+            0% { transform: rotate(0deg) scale(1.05); }
+            50% { transform: rotate(180deg) scale(1.1); }
+            100% { transform: rotate(360deg) scale(1.05); }
         }
 
-        footer {
-            border-top: 1px solid #a2a9b1;
-            padding: 1rem 0;
-            margin-top: 3rem;
-            font-size: 0.9rem;
-            text-align: center;
-            color: #555;
-        }
-
-        h2 {
-            margin-top: 0;
-        }
-
-        ul {
-            padding-left: 1rem;
-        }
-
-        /* Concept boxes hover effect */
-        .concept-box {
-            flex:1 1 200px;
-            padding:0.5rem 1rem;
-            border:1px solid #ccc;
-            border-radius:3px;
-            text-align:center;
-            background-color:#f8f9fa;
-            color:#0645ad;
-            font-size:0.95rem;
-            text-decoration:none;
-            transition: all 0.2s;
-        }
-
-        .concept-box:hover {
-            background-color:#e6f0ff;
-        }
-
-        form input[type=text] {
-            padding:0.4rem;
-            width:250px;
-            margin-right:0.5rem;
-            border:1px solid #ccc;
-            border-radius:3px;
-        }
-
-        form button {
-            padding:0.4rem 0.8rem;
-            background-color:#0645ad;
-            color:white;
-            border:none;
-            border-radius:3px;
-            cursor:pointer;
-        }
-
-        form button:hover {
-            background-color:#0b0080;
+        @keyframes swirl2 {
+            0% { transform: rotate(0deg) scale(1.1); }
+            50% { transform: rotate(180deg) scale(1.05); }
+            100% { transform: rotate(360deg) scale(1.1); }
         }
     </style>
 </head>
