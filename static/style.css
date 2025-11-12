@@ -5,22 +5,18 @@ body {
   background: #f8f9fa;
   color: #202122;
 }
-
 header {
   border-bottom: 1px solid #ccc;
   padding: 10px 0;
   margin-bottom: 20px;
 }
-
 a {
   color: #0645ad;
   text-decoration: none;
 }
-
 a:hover {
   text-decoration: underline;
 }
-
 textarea {
   width: 100%;
   font-family: monospace;
