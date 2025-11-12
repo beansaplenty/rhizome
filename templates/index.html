@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>All Pages</h1>
+<ul>
+  {% for page in pages %}
+    <li><a href="/wiki/{{ page['title'] }}">{{ page['title'] }}</a></li>
+  {% endfor %}
+</ul>
+<p><a href="/edit/New_Page">Create a new page</a></p>
+{% endblock %}
