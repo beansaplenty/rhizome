@@ -1,0 +1,1 @@
+<p><strong>Diagram</strong> is an abstract machine that extracts and exhibits the pure functions and matter of an assemblage.</p>
