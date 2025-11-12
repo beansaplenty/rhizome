@@ -1,6 +1,26 @@
 {% extends "base.html" %}
+
+{% block title %}{{ title.replace('_', ' ') }} - Deleuze Wiki{% endblock %}
+
 {% block content %}
-<h1>{{ title }}</h1>
-<div>{{ content|safe }}</div>
-<p><a href="/edit/{{ title }}">Edit this page</a></p>
+
+<h2>{{ title.replace('_', ' ') }}</h2>
+
+<!-- Article content with auto-linked concepts -->
+<p>{{ content | safe }}</p>
+
+<h4 style="margin-top:2rem; border-bottom:1px solid #ccc; padding-bottom:0.3rem;">Related Concepts</h4>
+<div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.5rem;">
+    {% for link in links %}
+        <a href="{{ url_for('page', title=link) }}" class="concept-box">
+            {{ link.replace('_', ' ') }}
+        </a>
+    {% endfor %}
+</div>
+
+<div style="margin-top:1.5rem;">
+    <a href="{{ url_for('index') }}">← Back to Home</a> | 
+    <a href="{{ url_for('edit', title=title) }}">Edit this page</a>
+</div>
+
 {% endblock %}

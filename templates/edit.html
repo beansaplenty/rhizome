@@ -1,8 +1,14 @@
 {% extends "base.html" %}
+
+{% block title %}Edit {{ title.replace('_', ' ') }} - Deleuze Wiki{% endblock %}
+
 {% block content %}
-<h1>Editing {{ title }}</h1>
+<h2>Edit {{ title.replace('_', ' ') }}</h2>
 <form method="POST">
-  <textarea name="content" rows="20" cols="80">{{ content }}</textarea><br>
-  <button type="submit">Save</button>
+    <div class="mb-3">
+        <textarea class="form-control" name="content" rows="10">{{ content }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a href="{{ url_for('page', title=title) }}" class="btn btn-secondary">Cancel</a>
 </form>
 {% endblock %}

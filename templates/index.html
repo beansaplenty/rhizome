@@ -1,10 +1,32 @@
 {% extends "base.html" %}
+
+{% block title %}Home - Deleuze Wiki{% endblock %}
+
 {% block content %}
-<h1>All Pages</h1>
-<ul>
-  {% for page in pages %}
-    <li><a href="/wiki/{{ page['title'] }}">{{ page['title'] }}</a></li>
-  {% endfor %}
-</ul>
-<p><a href="/edit/New_Page">Create a new page</a></p>
+
+<div style="text-align:center; margin-bottom:2rem;">
+    <img src="https://cdn.sanity.io/images/cxgd3urn/production/6795e52b4717b8105ebf9c0246bdd6deae4567c8-1200x675.webp?w=1200&h=675&q=85&fit=crop&auto=format"
+         alt="Gilles Deleuze" style="width:500px; border-radius:5px; margin-bottom:1rem;">
+    <h1 style="margin:0.5rem 0;">Deleuze Wiki</h1>
+    <p style="max-width:700px; margin:auto; font-size:1rem; color:#333;">
+        Explore the philosophy of <strong>Gilles Deleuze</strong>, his major concepts, and his works.
+        Click any concept to read more or add a new one below.
+    </p>
+</div>
+
+<h2 style="border-bottom:1px solid #ccc; padding-bottom:0.5rem;">Major Concepts</h2>
+<div style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:2rem;">
+    {% for page in pages %}
+        <a href="{{ url_for('page', title=page) }}" class="concept-box">
+            {{ page.replace('_', ' ') }}
+        </a>
+    {% endfor %}
+</div>
+
+<h3>Add New Concept</h3>
+<form method="POST" style="margin-bottom:2rem;">
+    <input type="text" name="new_title" placeholder="Concept Name" required>
+    <button type="submit">Create</button>
+</form>
+
 {% endblock %}
