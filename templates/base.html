@@ -1,93 +1,719 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Deleuze Wiki{% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            margin: 0;
-            padding: 0;
-            color: #202122;
-            position: relative;
-            overflow: hidden;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Deleuze Wiki{% endblock %}</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    html {
+        width: 100%;
+        background: #000;
+    }
+    
+    body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.6;
+        color: #202122;
+        position: relative;
+        min-height: 100vh;
+        background: #000;
+    }
+    
+    /* CRITICAL: Make sure images don't break layout on mobile */
+    img {
+        max-width: 100%;
+        height: auto;
+    }
+    
+    a { text-decoration: none; color: #0645ad; transition: 0.2s; }
+    a:hover { color: #0b0080; text-decoration: underline; }
+    
+    /* Canvas for fractals - FULL SCREEN */
+    #fractal-canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+        pointer-events: none;
+        opacity: 1;
+        transition: opacity 0.5s ease;
+    }
+    
+    /* Dim fractals on non-home pages */
+    body.subpage #fractal-canvas {
+        opacity: 0.2;
+    }
+    
+    /* Content layers */
+    header, .container, footer { 
+        position: relative; 
+        z-index: 10; 
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: all 0.4s ease;
+    }
+    
+    /* Immersive mode - hide all content */
+    body.immersive-mode header,
+    body.immersive-mode .container,
+    body.immersive-mode footer {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
+    header { 
+        border-bottom: 1px solid rgba(162, 169, 177, 0.3); 
+        padding: 1rem; 
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(255, 0, 255, 0.1);
+    }
+    
+    header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .container { 
+        max-width: 900px; 
+        margin: 1rem auto; 
+        padding: 1.5rem; 
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(255, 0, 255, 0.2);
+    }
+    
+    footer { 
+        border-top: 1px solid rgba(162, 169, 177, 0.3); 
+        padding: 1rem; 
+        margin-top: 2rem; 
+        font-size: 0.85rem; 
+        text-align: center; 
+        color: #555; 
+    }
+    
+    /* Immersive mode toggle button - only on homepage */
+    #immersive-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border: 2px solid rgba(255, 0, 255, 0.3);
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        color: #0645ad;
+        box-shadow: 0 4px 15px rgba(255, 0, 255, 0.2);
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Only show on homepage */
+    body.homepage #immersive-toggle {
+        display: block;
+    }
+    
+    #immersive-toggle:active {
+        transform: scale(0.95);
+    }
+    
+    body.immersive-mode #immersive-toggle {
+        background: rgba(255, 0, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: #fff;
+    }
+    
+    /* Icon in button */
+    #immersive-toggle::before {
+        content: "👁️ ";
+        font-size: 16px;
+    }
+    
+    h2 { margin-top: 0; font-size: 1.3rem; }
+    ul { padding-left: 1rem; }
+    
+    .concept-box { 
+        flex: 1 1 200px; 
+        padding: 0.5rem 1rem; 
+        border: 1px solid #ccc; 
+        border-radius: 3px; 
+        text-align: center; 
+        background-color: #f8f9fa; 
+        color: #0645ad; 
+        font-size: 0.95rem; 
+        transition: all 0.2s; 
+    }
+    .concept-box:hover { background-color: #e6f0ff; }
+    
+    form input[type=text] { 
+        padding: 0.5rem; 
+        width: 100%;
+        max-width: 250px;
+        margin-right: 0.5rem; 
+        border: 1px solid #ccc; 
+        border-radius: 3px;
+        font-size: 16px;
+    }
+    
+    form button { 
+        padding: 0.5rem 1rem; 
+        background-color: #0645ad; 
+        color: white; 
+        border: none; 
+        border-radius: 3px; 
+        cursor: pointer;
+        font-size: 16px;
+    }
+    form button:hover { background-color: #0b0080; }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+        header h1 {
+            font-size: 1.3rem;
         }
-
-        a { text-decoration: none; color: #0645ad; transition: 0.2s; }
-        a:hover { color: #0b0080; text-decoration: underline; }
-
-        header, .container, footer { position: relative; z-index: 1; }
-        header { border-bottom: 1px solid #a2a9b1; padding: 1rem 0; margin-bottom: 2rem; }
-        .container { max-width: 900px; margin: auto; padding: 0 1rem; }
-        footer { border-top: 1px solid #a2a9b1; padding: 1rem 0; margin-top: 3rem; font-size: 0.9rem; text-align: center; color: #555; }
-
-        h2 { margin-top: 0; }
-        ul { padding-left: 1rem; }
-
-        .concept-box { flex:1 1 200px; padding:0.5rem 1rem; border:1px solid #ccc; border-radius:3px; text-align:center; background-color:#f8f9fa; color:#0645ad; font-size:0.95rem; transition: all 0.2s; }
-        .concept-box:hover { background-color:#e6f0ff; }
-
-        form input[type=text] { padding:0.4rem; width:250px; margin-right:0.5rem; border:1px solid #ccc; border-radius:3px; }
-        form button { padding:0.4rem 0.8rem; background-color:#0645ad; color:white; border:none; border-radius:3px; cursor:pointer; }
-        form button:hover { background-color:#0b0080; }
-
-        /* Trippy multi-layer swirl effect */
-        body::before, body::after {
-            content: "";
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            z-index: 0;
-            pointer-events: none;
+        
+        .container {
+            margin: 0.5rem;
+            padding: 1rem;
         }
-
-        body::before {
-            background:
-                radial-gradient(circle at 15% 20%, #ff00ff33, transparent 50%),
-                radial-gradient(circle at 75% 70%, #00ffff33, transparent 50%),
-                radial-gradient(circle at 50% 50%, #ffff0033, transparent 50%);
-            mix-blend-mode: overlay;
-            animation: swirl1 40s infinite linear;
+        
+        h2 {
+            font-size: 1.2rem;
         }
-
-        body::after {
-            background:
-                radial-gradient(circle at 25% 80%, #ff660033, transparent 50%),
-                radial-gradient(circle at 70% 25%, #66ff0033, transparent 50%),
-                radial-gradient(circle at 50% 50%, #0066ff33, transparent 50%);
-            mix-blend-mode: overlay;
-            animation: swirl2 60s infinite linear reverse;
+        
+        form input[type=text] {
+            width: 100%;
+            margin-bottom: 0.5rem;
         }
-
-        @keyframes swirl1 {
-            0% { transform: rotate(0deg) scale(1.05); }
-            50% { transform: rotate(180deg) scale(1.1); }
-            100% { transform: rotate(360deg) scale(1.05); }
+        
+        form button {
+            width: 100%;
         }
-
-        @keyframes swirl2 {
-            0% { transform: rotate(0deg) scale(1.1); }
-            50% { transform: rotate(180deg) scale(1.05); }
-            100% { transform: rotate(360deg) scale(1.1); }
+        
+        #immersive-toggle {
+            bottom: 15px;
+            right: 15px;
+            padding: 10px 16px;
+            font-size: 13px;
         }
-    </style>
+    }
+</style>
 </head>
 <body>
-
+    <!-- Fractal canvas background -->
+    <canvas id="fractal-canvas"></canvas>
+    
+    <!-- Immersive mode toggle button (only on homepage) -->
+    <button id="immersive-toggle">Immersive Mode</button>
+    
     <header class="container">
         <h1><a href="{{ url_for('index') }}">Deleuze Wiki</a></h1>
     </header>
-
     <main class="container">
         {% block content %}{% endblock %}
     </main>
-
-    <footer>
+    <footer class="container">
         &copy; 2025 Deleuze Wiki
     </footer>
-
+    
+    <script>
+    // Detect if we're on the homepage
+    const isHomePage = window.location.pathname === '/' || window.location.pathname === '/index';
+    const body = document.body;
+    
+    if (isHomePage) {
+        body.classList.add('homepage');
+    } else {
+        body.classList.add('subpage');
+    }
+    
+    // Immersive mode toggle (only on homepage)
+    const immersiveToggle = document.getElementById('immersive-toggle');
+    
+    if (isHomePage) {
+        if (localStorage.getItem('immersiveMode') === 'true') {
+            body.classList.add('immersive-mode');
+            immersiveToggle.textContent = 'Exit Immersive';
+        }
+        
+        immersiveToggle.addEventListener('click', function() {
+            body.classList.toggle('immersive-mode');
+            const isImmersive = body.classList.contains('immersive-mode');
+            immersiveToggle.textContent = isImmersive ? 'Exit Immersive' : 'Immersive Mode';
+            localStorage.setItem('immersiveMode', isImmersive);
+        });
+    }
+    
+    const canvas = document.getElementById('fractal-canvas');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    let w, h, dpr;
+    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    
+    // Initialize dimensions
+    w = window.innerWidth;
+    h = window.innerHeight;
+    
+    // Adjust quality based on device
+    const particleCount = isMobile ? 40 : 70;
+    const nodeCount = isMobile ? 4 : 6;
+    const sparkleCount = isMobile ? 20 : 40;
+    const fractalDepth = isMobile ? 2 : 3;
+    const entityCount = isMobile ? 3 : 5;
+    const starCount = isMobile ? 100 : 200;
+    
+    // Galaxy background stars
+    class Star {
+        constructor() {
+            this.x = Math.random() * w;
+            this.y = Math.random() * h;
+            this.size = Math.random() * 2;
+            this.brightness = Math.random();
+            this.twinkleSpeed = Math.random() * 0.02 + 0.01;
+            this.twinklePhase = Math.random() * Math.PI * 2;
+            this.color = this.getStarColor();
+        }
+        
+        getStarColor() {
+            const colors = [
+                { h: 240, s: 80, l: 90 },
+                { h: 200, s: 70, l: 85 },
+                { h: 280, s: 60, l: 80 },
+                { h: 320, s: 70, l: 85 },
+                { h: 0, s: 0, l: 95 }
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        updateBase(width, height) {
+            if (w > 0 && width > 0) {
+                this.x = (this.x / w) * width;
+                this.y = (this.y / h) * height;
+            }
+        }
+        
+        update(t) {
+            this.alpha = 0.3 + Math.sin(t * this.twinkleSpeed + this.twinklePhase) * 0.3;
+        }
+        
+        draw(ctx) {
+            ctx.fillStyle = `hsla(${this.color.h}, ${this.color.s}%, ${this.color.l}%, ${this.alpha})`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    class NebulaCloud {
+        constructor(index) {
+            this.x = Math.random() * w;
+            this.y = Math.random() * h;
+            this.size = Math.random() * 200 + 150;
+            this.hue = Math.random() * 60 + 260;
+            this.drift = Math.random() * 0.001 + 0.0005;
+            this.phase = Math.random() * Math.PI * 2;
+        }
+        
+        updateBase(width, height) {
+            if (w > 0 && width > 0) {
+                this.x = (this.x / w) * width;
+                this.y = (this.y / h) * height;
+            }
+        }
+        
+        update(t) {
+            this.alpha = 0.05 + Math.sin(t * this.drift + this.phase) * 0.03;
+        }
+        
+        draw(ctx) {
+            const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
+            gradient.addColorStop(0, `hsla(${this.hue}, 70%, 50%, ${this.alpha})`);
+            gradient.addColorStop(0.5, `hsla(${this.hue + 20}, 60%, 40%, ${this.alpha * 0.5})`);
+            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    function resize() {
+        const oldW = w;
+        const oldH = h;
+        dpr = Math.min(window.devicePixelRatio || 1, 2);
+        w = window.innerWidth;
+        h = window.innerHeight;
+        
+        canvas.width = w * dpr;
+        canvas.height = h * dpr;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        ctx.scale(dpr, dpr);
+        
+        if (oldW > 0) {
+            particles.forEach(p => p.updateBase(w, h));
+            nodes.forEach(n => n.updateBase(w, h));
+            entities.forEach(e => e.updateBase(w, h));
+            stars.forEach(s => s.updateBase(w, h));
+            nebulae.forEach(n => n.updateBase(w, h));
+        }
+    }
+    
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', function() {
+        setTimeout(resize, 100);
+    });
+    
+    let t = 0;
+    
+    class Entity {
+        constructor(index, total) {
+            this.index = index;
+            this.total = total;
+            this.respawnTime = Math.random() * 200 + 100;
+            this.lifetime = Math.random() * 150 + 100;
+            this.age = Math.random() * this.lifetime;
+            this.type = Math.random() > 0.5 ? 'elf' : 'dwarf';
+            this.updateBase(w, h);
+        }
+        
+        updateBase(width, height) {
+            this.centerX = width / 2;
+            this.centerY = height / 2;
+            this.spawnX = Math.random() * width;
+            this.spawnY = Math.random() * height;
+        }
+        
+        respawn() {
+            this.age = 0;
+            this.spawnX = Math.random() * w;
+            this.spawnY = Math.random() * h;
+            this.type = Math.random() > 0.5 ? 'elf' : 'dwarf';
+            this.lifetime = Math.random() * 150 + 100;
+            this.hueBase = Math.random() * 360;
+            this.wiggleSpeed = Math.random() * 0.05 + 0.02;
+            this.floatSpeed = Math.random() * 0.03 + 0.01;
+        }
+        
+        update(t) {
+            this.age++;
+            
+            if (this.age > this.lifetime) {
+                this.respawn();
+            }
+            
+            const fadeIn = Math.min(1, this.age / 20);
+            const fadeOut = Math.min(1, (this.lifetime - this.age) / 20);
+            this.alpha = Math.min(fadeIn, fadeOut) * 0.9;
+            
+            this.x = this.spawnX + Math.sin(t * this.floatSpeed + this.index) * 80;
+            this.y = this.spawnY + Math.cos(t * this.floatSpeed * 0.7 + this.index) * 60;
+            
+            this.wiggle = Math.sin(t * this.wiggleSpeed) * 0.3;
+            this.hue = (this.hueBase + t * 2) % 360;
+        }
+        
+        draw(ctx) {
+            if (this.alpha < 0.1) return;
+            
+            ctx.save();
+            ctx.translate(this.x, this.y);
+            ctx.rotate(this.wiggle);
+            ctx.globalAlpha = this.alpha;
+            
+            if (this.type === 'elf') {
+                const size = 15;
+                ctx.strokeStyle = `hsl(${this.hue}, 100%, 70%)`;
+                ctx.fillStyle = `hsl(${(this.hue + 60) % 360}, 100%, 60%)`;
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(0, -size);
+                ctx.lineTo(size * 0.7, 0);
+                ctx.lineTo(0, size);
+                ctx.lineTo(-size * 0.7, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = `hsl(${(this.hue + 180) % 360}, 100%, 80%)`;
+                ctx.beginPath();
+                ctx.arc(-size * 0.3, -size * 0.2, 3, 0, Math.PI * 2);
+                ctx.arc(size * 0.3, -size * 0.2, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                for (let i = 0; i < 6; i++) {
+                    const angle = (Math.PI * 2 / 6) * i + t * 0.05;
+                    const armLength = size * 1.2;
+                    ctx.strokeStyle = `hsl(${(this.hue + i * 20) % 360}, 100%, 65%)`;
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(Math.cos(angle) * armLength, Math.sin(angle) * armLength);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = `hsl(${(this.hue + i * 30) % 360}, 100%, 75%)`;
+                    ctx.beginPath();
+                    ctx.arc(Math.cos(angle) * armLength, Math.sin(angle) * armLength, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else {
+                const size = 12;
+                ctx.fillStyle = `hsl(${this.hue}, 90%, 65%)`;
+                ctx.strokeStyle = `hsl(${(this.hue + 30) % 360}, 100%, 50%)`;
+                ctx.lineWidth = 2;
+                
+                ctx.beginPath();
+                ctx.ellipse(0, size * 0.3, size * 0.8, size, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = `hsl(${(this.hue + 40) % 360}, 90%, 70%)`;
+                ctx.beginPath();
+                ctx.arc(0, -size * 0.5, size * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.fillStyle = `hsl(${(this.hue + 180) % 360}, 100%, 30%)`;
+                ctx.beginPath();
+                ctx.arc(-size * 0.25, -size * 0.5, 2, 0, Math.PI * 2);
+                ctx.arc(size * 0.25, -size * 0.5, 2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = `hsl(${(this.hue + 60) % 360}, 80%, 60%)`;
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.6, -size * 0.2);
+                ctx.lineTo(0, size * 0.4);
+                ctx.lineTo(size * 0.6, -size * 0.2);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.fillStyle = `hsl(${(this.hue + 120) % 360}, 90%, 55%)`;
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.5, -size * 0.8);
+                ctx.lineTo(0, -size * 1.5);
+                ctx.lineTo(size * 0.5, -size * 0.8);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            }
+            
+            ctx.restore();
+        }
+    }
+    
+    class Particle {
+        constructor(index, total) {
+            this.index = index;
+            this.total = total;
+            this.baseAngle = (index * Math.PI * 2) / total + Math.random() * 0.5;
+            this.speed = 0.025 + Math.random() * 0.02;
+            this.radiusOffset = Math.random() * 100;
+            this.sizePhase = Math.random() * Math.PI * 2;
+            this.hueOffset = Math.random() * 360;
+            this.chaosX = Math.random() * 100 - 50;
+            this.chaosY = Math.random() * 100 - 50;
+        }
+        
+        updateBase(width, height) {
+            this.centerX = width / 2;
+            this.centerY = height / 2;
+            this.baseRadius = Math.min(width, height) * 0.25;
+        }
+        
+        update(t) {
+            const angle = this.baseAngle + t * this.speed;
+            const spiral = Math.sin(t * 0.03 + this.index * 0.1) * this.baseRadius * 0.3;
+            const chaos = Math.sin(t * 0.07 + this.index) * 50;
+            const radius = this.baseRadius + spiral + this.radiusOffset + chaos;
+            
+            this.x = this.centerX + Math.cos(angle) * radius + this.chaosX * Math.sin(t * 0.02);
+            this.y = this.centerY + Math.sin(angle) * radius + this.chaosY * Math.cos(t * 0.02);
+            this.size = 3 + Math.sin(t * 0.08 + this.sizePhase) * 2.5;
+            this.hue = (t * 5 + this.hueOffset) % 360;
+        }
+        
+        draw(ctx) {
+            ctx.fillStyle = `hsl(${this.hue}, 100%, 65%)`;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+    
+    class FractalNode {
+        constructor(index, total) {
+            this.index = index;
+            this.total = total;
+            this.offset = Math.random() * 360;
+            this.speed = 0.02 + Math.random() * 0.015;
+            this.wobbleSpeed = 0.015 + Math.random() * 0.01;
+            this.randomX = Math.random();
+            this.randomY = Math.random();
+        }
+        
+        updateBase(width, height) {
+            this.baseX = (0.15 + this.randomX * 0.7) * width;
+            this.baseY = (0.15 + this.randomY * 0.7) * height;
+            this.baseSize = Math.min(width, height) * (0.05 + Math.random() * 0.03);
+        }
+        
+        update(t) {
+            this.pulse = Math.sin(t * this.speed + this.offset * 0.01) * 0.4 + 1.2;
+            this.size = this.baseSize * this.pulse;
+            this.wobbleX = Math.sin(t * this.wobbleSpeed + this.offset * 0.01) * 60;
+            this.wobbleY = Math.cos(t * this.wobbleSpeed + this.offset * 0.01) * 60;
+            this.x = this.baseX + this.wobbleX;
+            this.y = this.baseY + this.wobbleY;
+            this.angle = t * 0.02 + this.offset * 0.01;
+            this.hue = (t * 4 + this.offset) % 360;
+        }
+    }
+    
+    // Initialize all objects
+    const stars = [];
+    for (let i = 0; i < starCount; i++) {
+        stars.push(new Star());
+    }
+    
+    const nebulae = [];
+    for (let i = 0; i < 3; i++) {
+        nebulae.push(new NebulaCloud(i));
+    }
+    
+    const particles = [];
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle(i, particleCount));
+    }
+    
+    const nodes = [];
+    for (let i = 0; i < nodeCount; i++) {
+        nodes.push(new FractalNode(i, nodeCount));
+    }
+    
+    const entities = [];
+    for (let i = 0; i < entityCount; i++) {
+        entities.push(new Entity(i, entityCount));
+    }
+    
+    function drawFractalBranch(x, y, size, angle, depth, hue) {
+        if (depth === 0 || size < 1) return;
+        
+        const alpha = 0.85 - (depth * 0.15);
+        
+        ctx.fillStyle = `hsla(${hue}, 100%, 65%, ${alpha})`;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        ctx.strokeStyle = `hsla(${(hue + 80) % 360}, 100%, 75%, ${alpha * 0.7})`;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(x, y, size * 1.4, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        const branches = Math.floor(Math.random() * 3) + 4;
+        for (let i = 0; i < branches; i++) {
+            const branchAngle = angle + (Math.PI * 2 / branches) * i + Math.random() * 0.3;
+            const distance = size * (1.8 + Math.random() * 0.4);
+            const newX = x + Math.cos(branchAngle) * distance;
+            const newY = y + Math.sin(branchAngle) * distance;
+            
+            ctx.strokeStyle = `hsla(${(hue + 40) % 360}, 100%, 70%, ${alpha * 0.8})`;
+            ctx.lineWidth = Math.max(1.5, size / 8);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(newX, newY);
+            ctx.stroke();
+            
+            drawFractalBranch(newX, newY, size * (0.45 + Math.random() * 0.15), branchAngle, depth - 1, (hue + 50 + Math.random() * 30) % 360);
+        }
+    }
+    
+    // Initialize particles with proper dimensions
+    particles.forEach(p => p.updateBase(w, h));
+    nodes.forEach(n => n.updateBase(w, h));
+    entities.forEach(e => e.updateBase(w, h));
+    
+    resize();
+    
+    let lastFrameTime = 0;
+    const frameInterval = isMobile ? 1000 / 30 : 1000 / 60;
+    
+    function draw(currentTime) {
+        requestAnimationFrame(draw);
+        
+        if (isMobile && currentTime - lastFrameTime < frameInterval) {
+            return;
+        }
+        lastFrameTime = currentTime;
+        
+        // Draw deep space background
+        ctx.fillStyle = 'rgb(5, 5, 15)';
+        ctx.fillRect(0, 0, w, h);
+        
+        // Draw nebulae
+        nebulae.forEach(n => {
+            n.update(t);
+            n.draw(ctx);
+        });
+        
+        // Draw stars
+        stars.forEach(s => {
+            s.update(t);
+            s.draw(ctx);
+        });
+        
+        // Semi-transparent overlay for depth
+        ctx.fillStyle = 'rgba(0, 0, 5, 0.08)';
+        ctx.fillRect(0, 0, w, h);
+        
+        particles.forEach(p => {
+            p.update(t);
+            p.draw(ctx);
+        });
+        
+        nodes.forEach(node => {
+            node.update(t);
+            drawFractalBranch(node.x, node.y, node.size, node.angle, fractalDepth, node.hue);
+        });
+        
+        // Draw entities (machine elves and dwarves)
+        entities.forEach(entity => {
+            entity.update(t);
+            entity.draw(ctx);
+        });
+        
+        // Super bright rainbow sparkles
+        for (let i = 0; i < sparkleCount; i++) {
+            const sparkleAngle = t * (0.05 + Math.random() * 0.02) + i * 0.7;
+            const sparkleRadius = Math.min(w, h) * (0.3 + Math.sin(t * 0.03 + i) * 0.15);
+            const sx = w/2 + Math.cos(sparkleAngle) * sparkleRadius;
+            const sy = h/2 + Math.sin(sparkleAngle) * sparkleRadius;
+            const sparkleSize = 2 + Math.sin(t * 0.2 + i) * 1.5;
+            
+            ctx.fillStyle = `hsl(${(t * 10 + i * 15) % 360}, 100%, 75%)`;
+            ctx.beginPath();
+            ctx.arc(sx, sy, sparkleSize, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        t += 1;
+    }
+    
+    requestAnimationFrame(draw);
+    </script>
 </body>
 </html>
