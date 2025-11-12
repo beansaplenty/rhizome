@@ -8,6 +8,7 @@ DATA_DIR = "pages"
 if not os.path.exists(DATA_DIR):
     os.makedirs(DATA_DIR)
 
+# --- Helper functions ---
 def get_page_content(title):
     path = os.path.join(DATA_DIR, f"{title}.txt")
     if os.path.exists(path):
@@ -28,10 +29,11 @@ def auto_link_content(content):
     def replace_word(match):
         word = match.group(0)
         if word in pages:
-            return f'<a href="{url_for("page", title=word)}">{word.replace("_", " ")}</a>'
+            return f'<a href="/wiki/{word}">{word.replace("_", " ")}</a>'
         return word
     return re.sub(r'\b\w[\w_]*\b', replace_word, content)
 
+# --- Routes ---
 @app.route("/", methods=["GET", "POST"])
 def index():
     if request.method == "POST":
@@ -57,8 +59,7 @@ def edit(title):
     content = get_page_content(title)
     return render_template("edit.html", title=title, content=content)
 
+# --- Render-ready run ---
 if __name__ == "__main__":
-    import os
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
